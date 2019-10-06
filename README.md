@@ -7,8 +7,10 @@ python3 gui.py
   - [ ] Main functionality (pay, get money)
   - [ ] Enable / Disable DHCP -->Button grey out Update
   - [ ] DB sync
-  
-  - [ ] card add to kid && lost
+
+  - [x] card add to kid && lost
   - [ ] History file
   - [ ] sync history file
-  - [ ] All Kids list view
+  - [x] All Kids list view
+
+  - [ ] Export DB
