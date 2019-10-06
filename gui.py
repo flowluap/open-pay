@@ -8,6 +8,7 @@ import db
 import subprocess
 from dotenv import load_dotenv
 import db
+import rfid
 
 
 
@@ -19,12 +20,28 @@ class MainGui:
         master.geometry("{0}x{1}+0+0".format(
             master.winfo_screenwidth()-pad, master.winfo_screenheight()-pad))
         master.wm_attributes('-type', 'splash')
-
-        tk.Button(self.master, text = 'Einzahlen', width = 45,height=7).pack(anchor='center',pady=5)
-        tk.Button(self.master, text = 'Auszahlen', width = 45,height=7).pack(anchor='center',pady=5)
+        tk.Label(self.master, text="Das Jufö Bankensystem").pack(anchor='center',pady=5)
+        #tk.Button(self.master, text = 'Einzahlen', width = 45,height=7).pack(anchor='center',pady=5)
+        #tk.Button(self.master, text = 'Auszahlen', width = 45,height=7).pack(anchor='center',pady=5)
         tk.Button(self.master, text = 'Kill', width = 25,command =  self.master.destroy).pack(anchor='center')
 
+class CardManage:
+    def __init__(self, master,id):
+        self.id = id
+        self.master = master
 
+        self._geom='200x210+0+0'
+        master.geometry("{0}x{1}+0+0".format(master.winfo_screenwidth()-3, master.winfo_screenheight()-3))
+        master.wm_attributes('-type', 'splash')
+
+        tk.Label(self.master, text=self.id).pack(anchor='center',pady=5)
+        print()
+        if db.Db().command("Select * From users Where tagid='{}';".format(id)).fetchall() == []:
+            self.users = db.Db().command("Select * From users;").fetchall()
+            print(self.users)
+            tk.Label(self.master, text="Karte nicht in DB registriert. Karte mit Nutzer verknüpfen?").pack(anchor='center',pady=5)
+        #else:
+        tk.Button(self.master, text = 'Schließen', width = 10, command = self.master.destroy).pack()
 
 class Settings:
     def __init__(self, master):
@@ -71,19 +88,17 @@ class Settings:
         root.focus_force()
         csv_path = filedialog.askopenfilename(parent=root, initialdir = "/media/sda",title = "CSV auswählen",filetypes = (("csv Dateien","*.csv"),("all files","*.*")))
         root.destroy()
-        print(csv_path)
         if csv_path is None or len(csv_path) < 1:
-            try:
-                os.system("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
-                print("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
-                os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
-            except Exception as e:
-                print(e)
-
             return
+        #print(pandas.read_csv(csv_path,sep=',', encode="utf8"))
 
-        print(csv_path)
-        print(pandas.read_csv(csv_path))
+        for index, row in pandas.read_csv(csv_path, sep=',').iterrows():
+                print(row["name"],row["nachname"], row["Geburtsdatum (alternativ)"])
+                db.Db().insert_user([row["name"],row["nachname"], row["Geburtsdatum (alternativ)"]])
+
+
+
+
         try:
             os.system("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
             print("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
@@ -112,8 +127,8 @@ class Settings:
 
         try:
             os.system("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
-            print("sudo cp /home/pi/jufö/empty.csv {0}".format(csv_path.name))
             os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
+
         except Exception as e:
             print(e)
             #pass
@@ -124,9 +139,6 @@ class Settings:
             for line in p.stdout:
                 self.status.delete("1.0", "end")
                 self.status.insert(tk.END, line)
-
-        #os.system('sudo apt-get update -y')
-        #os.system('sudo apt-get upgrade -y'))
 
 
     def reboot(self):
@@ -187,6 +199,18 @@ class CheckforUsb:
                 os.system("sudo umount -l /media/*")
                 os.system("sudo rm -r /media/*")
 
+class CheckforRfid:
+    def __init__(self, master):
+        self.master = master
+        id = rfid.read()
+        if id != None:
+            _thread.start_new_thread( CheckforRfid, (root, ))
+            print(id)
+            #close all instances of Card
+            self.newWindow = tk.Toplevel(self.master)
+            self.app = CardManage(self.newWindow,id)
+
+
 
 
 if __name__ == '__main__':
@@ -199,5 +223,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     app = MainGui(root)
     _thread.start_new_thread( CheckforUsb, (root, ) )
+
+    _thread.start_new_thread( CheckforRfid, (root, ))
 
     root.mainloop()
