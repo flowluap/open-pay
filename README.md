@@ -1,5 +1,4 @@
-export DISPLAY=:0.0
-python3 gui.py
+
 ## Setup
 
 Zuerst werden die Displaytreiber installiert:
@@ -15,7 +14,10 @@ Nach einem Reboot funktioniert das Touch-display
 ```
 git clone https://github.com/flowluap/open-pay.git 
 cd open-pay
+#über ssh muss noch das richtige Display gewählt werden
+export DISPLAY=:0.0
 python3 guy.py
+
 ```
 Ab diesem Zeitpunkt kann Open-Pay im vollen Umfang genutzt werden.
 Um Open-Pay in einer Art Kioskmodus laufen zu lassen, habe ich mich dazu entschieden *nodm (einen minimalistischen Displaymanager) und openbox* zu verwenden, um einen möglichst schnellen Start zu erlauben.
@@ -23,11 +25,11 @@ Um Open-Pay in einer Art Kioskmodus laufen zu lassen, habe ich mich dazu entschi
 ```
 sudo apt-get -y install nodm
 
-# Edit nodm config file
+# nodm config bearbeiten
 sudo sed -i -e "s/NODM_ENABLED=false/NODM_ENABLED=true/" -e "s/NODM_USER=root/NODM_USER=pi/" \
   /etc/default/nodm
 
-# Create custom Xsession file
+#Xsession Datei erstellen
 printf "%s\n" \
   "#!/usr/bin/env bash" \
   "exec openbox-session &" \
@@ -62,9 +64,6 @@ disable_splash=1
   - [ ] sync history file
   - [x] All Kids list view
 
-<<<<<<< HEAD
-  - [x] Export DB
-=======
   - [ ] Export DB
   - [ ] show IP Address
->>>>>>> 8e13ac58db4e18142b2454a137137405624a082f
+
