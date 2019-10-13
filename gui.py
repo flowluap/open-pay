@@ -31,7 +31,7 @@ class MainGui:
 
         self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=15)
 
-        with open("history.txt","r") as f:
+        with open("/home/pi/jufö/history.txt","r") as f:
               for line in f.read().split("\n"):
                   self.userlist.insert(END, line)
 
@@ -42,7 +42,7 @@ class MainGui:
 
         #tk.Button(self.master, text = 'Kill', width = 25,command =  self.master.destroy).pack(anchor='center')
     def update(self):
-        with open("history.txt","r") as f:
+        with open("/home/pi/jufö/history.txt","r") as f:
             self.userlist.delete(0,'end')
             for line in f.read().split("\n"):
                 self.userlist.insert(END, line)
@@ -132,7 +132,7 @@ class CardManage:
         user = db.Db().command("Select * From users Where tagid='{}';".format(self.id)).fetchall()[0]
         db.Db().new_betrag(self.id,float(self.betrag))
 
-        with open("history.txt","a") as f:
+        with open("/home/pi/jufö/history.txt","a") as f:
             f.seek(0, 0)
             f.write("{} {} hat {} Taler übertragen bekommen \n".format(user[2],user[3],self.betrag))
 
@@ -184,17 +184,20 @@ class Settings:
         tk.Button(self.frame, text = 'Nutzerliste', width = 25,command=self.open_users).grid(row=2, column=0)
         tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=3, column=0)
         tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=4, column=0)
+        tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=5, column=0)
 
-
-        tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=2, column=1)
-        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=3, column=1)
-        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=4, column=1)
+        tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=1, columnspan=1)
+        tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=3, column=1)
+        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1)
+        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1)
         self.status = tk.Text(self.frame, width=50, height=5)
         self.status.grid(row=7,column=0,columnspan=2)
         tk.Button(self.frame, text = 'Schließen', width = 10, command = self.master.destroy).grid(row=8, column=0, columnspan=2)
         self.frame.grid()
 
-        #self.master.update_idletasks()
+        #os.system("sudo fdisk -l")
+        #os.system("sudo pmount /dev/sda")
+
     def open_users(self):
         self.newWindow = tk.Toplevel(self.master)
         self.app = Users(self.newWindow)
@@ -204,11 +207,14 @@ class Settings:
         if MsgBox == 'yes':
            db.Db().del_all_users()
 
+    def clear_hs(self):
+        MsgBox = tk.messagebox.askquestion ('Verlauf leeren','Bist Du sicher, dass der Verlauf der Transaktionen gelöscht werden soll?',icon = 'warning',parent=self.master)
+        if MsgBox == 'yes':
+           open("/home/pi/jufö/history.txt", 'w').close()
+
     def load_csv(self):
-        try:
-            os.system("sudo pmount /dev/sda")
-        except:
-            pass
+        os.system("sudo fdisk -l")
+        os.system("sudo pmount /dev/sda")
 
         root = tk.Tk()
         root.withdraw()
@@ -223,10 +229,8 @@ class Settings:
             return
 
         for index, row in pandas.read_csv(csv_path, sep=',').iterrows():
-                db.Db().insert_user([row["name"],row["nachname"], row["Geburtsdatum (alternativ)"]])
-
-
-
+                print(row, index)
+                db.Db().insert_user([row["name"],row["nachname"]])
 
         try:
             os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
@@ -234,10 +238,8 @@ class Settings:
             print(e)
 
     def save_csv(self):
-        try:
-            os.system("sudo pmount /dev/sda")
-        except:
-            pass
+        os.system("sudo fdisk -l")
+        os.system("sudo pmount /dev/sda")
 
         root = tk.Tk()
         root.withdraw()
@@ -260,6 +262,29 @@ class Settings:
             print(e)
             #pass
 
+    def save_db(self):
+        os.system("sudo fdisk -l")
+        os.system("sudo pmount /dev/sda")
+
+        root = tk.Tk()
+        root.withdraw()
+        root.overrideredirect(True)
+        root.geometry('0x0+0+0')
+        root.deiconify()
+        root.lift()
+        root.focus_force()
+        db_path = filedialog.asksaveasfile(parent=root, mode='w',title="Datenbank sichern", initialdir = "/media/sda",
+                    initialfile="userdata",defaultextension=".db",filetypes = (("db","*.db"),))
+        root.destroy()
+        if db_path is None:
+            return
+
+        try:
+            os.system("sudo cp /home/pi/jufö/userdata.db {0}".format(db_path.name))
+            os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
+
+        except Exception as e:
+            print(e)
 
     def update(self):
         with subprocess.Popen(["sudo apt-get update -y && sudo apt-get upgrade -y"], shell=True, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
@@ -339,9 +364,12 @@ class CheckforRfid:
 
 
 if __name__ == '__main__':
-    os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
-    os.system("sudo umount -l /media/*")
-    os.system("sudo rm -r /media/*")
+    try:
+        os.system("sudo pumount --yes-I-really-want-lazy-unmount /dev/sda")
+        os.system("sudo umount -l /media/*")
+        os.system("sudo rm -r /media/*")
+    except:
+        pass
 
     load_dotenv()
 

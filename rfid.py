@@ -1,3 +1,6 @@
+#thx to https://github.com/matthiasbock/ for Mifare-M302
+#optimized for pyton3
+
 import serial
 import binascii
 

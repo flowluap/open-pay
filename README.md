@@ -10,8 +10,7 @@ python3 gui.py
 
   - [x] card add to kid && lost
   - [x] History file
-  - [ ] delete History file
   - [ ] sync history file
   - [x] All Kids list view
 
-  - [ ] Export DB
+  - [x] Export DB

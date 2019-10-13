@@ -17,7 +17,7 @@ class Db:
         os.system("sudo chmod 777 /home/pi/jufö/userdata.db")
         os.system("sudo chown pi /home/pi/jufö/userdata.db")
         sql = "CREATE TABLE IF NOT EXISTS users("\
-            "ID INTEGER PRIMARY KEY AUTOINCREMENT, tagid VARCHAR(65), name VARCHAR(30), nachname VARCHAR(30), birth VARCHAR(30), kontostand FLOAT, \
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT, tagid VARCHAR(65), name VARCHAR(30), nachname VARCHAR(30), kontostand FLOAT, \
              change VARCHAR(45)) "
         self.cursor.execute(sql)
         self.connection.commit()
@@ -43,7 +43,7 @@ class Db:
 
 
     def insert_user(self,data):
-        name, lastname, birth = data
-        sql = "Insert INTO users (name, nachname, birth, kontostand, change) Values ('{}','{}','{}','{}','{}');".format(name, lastname, birth, os.getenv("INITIAL_ACCOUNT_PLUS"),datetime.datetime.now())
+        name, lastname = data
+        sql = "Insert INTO users (name, nachname, kontostand, change) Values ('{}','{}','{}','{}');".format(name, lastname, os.getenv("INITIAL_ACCOUNT_PLUS"),datetime.datetime.now())
         self.cursor.execute(sql)
         self.connection.commit()
