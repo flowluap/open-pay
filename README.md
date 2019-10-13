@@ -1,5 +1,6 @@
+# Open-Pay
 
-## Setup
+## Getting started
 
 Zuerst werden die Displaytreiber installiert:
 ```
@@ -52,7 +53,7 @@ logo.nologo
 
 disable_splash=1
 ```
-## Todo
+## Todos
 
   - [x] SQL Lite Merge (lastchanged attribute db for row)
   - [x] Main functionality (pay, get money)
@@ -65,5 +66,10 @@ disable_splash=1
   - [x] All Kids list view
 
   - [ ] Export DB
-  - [ ] show IP Address
+  - [ ] show IP 
+  
+  ## Authors
+
+* **Paul Wolf** - *Initial work* - 
+
 
