@@ -13,4 +13,9 @@ python3 gui.py
   - [ ] sync history file
   - [x] All Kids list view
 
+<<<<<<< HEAD
   - [x] Export DB
+=======
+  - [ ] Export DB
+  - [ ] show IP Address
+>>>>>>> 8e13ac58db4e18142b2454a137137405624a082f
