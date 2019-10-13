@@ -15,3 +15,4 @@ python3 gui.py
   - [x] All Kids list view
 
   - [ ] Export DB
+  - [ ] show IP Adress
