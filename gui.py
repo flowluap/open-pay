@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import db
 import rfid
 import datetime
+import socket
 
 
 
@@ -86,7 +87,7 @@ class CardManage:
             self.scrollbar.pack( side = RIGHT, fill = Y )
 
             self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=13)
-            self.userlist.insert(END, "ID, TagID, Vorname, Nachname, Geburtsdatum, Kontostand")
+            self.userlist.insert(END, "ID, TagID, Vorname, Nachname, Kontostand")
             for line in self.users:
                self.userlist.insert(END, line[1:6])
 
@@ -185,18 +186,26 @@ class Settings:
         tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=3, column=0)
         tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=4, column=0)
         tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=5, column=0)
+        tk.Label(self.frame, text=self.get_ip()).grid(row=6, column=0)
 
         tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=1, columnspan=1)
         tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=3, column=1)
         tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1)
         tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1)
-        self.status = tk.Text(self.frame, width=50, height=5)
+        tk.Button(self.frame, text = 'Restart Program', width = 25, command=sys.exit).grid(row=6, column=1)
+
+        self.status = tk.Text(self.frame, width=50, height=2)
         self.status.grid(row=7,column=0,columnspan=2)
         tk.Button(self.frame, text = 'Schließen', width = 10, command = self.master.destroy).grid(row=8, column=0, columnspan=2)
         self.frame.grid()
 
         #os.system("sudo fdisk -l")
         #os.system("sudo pmount /dev/sda")
+    def get_ip(self):
+        try:
+            return subprocess.check_output("hostname -I", shell=True).decode('utf-8')
+        except:
+            return "Unable to get Hostname and IP"
 
     def open_users(self):
         self.newWindow = tk.Toplevel(self.master)
@@ -370,6 +379,9 @@ if __name__ == '__main__':
         os.system("sudo rm -r /media/*")
     except:
         pass
+
+    if not os.path.isdir('/home/pi/jufö/history.txt'):
+        open("/home/pi/jufö/history.txt", 'w').close()
 
     load_dotenv()
 
