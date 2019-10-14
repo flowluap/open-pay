@@ -55,10 +55,24 @@ disable_splash=1
 ```
 ## Todos
 
+## Anleitung
+
+### Einrichtung
+
+Wenn Open-Pay auf dem System läuft, muss eine Nutzerdatenbank erstellt werden. Das geschieht über einen CSV Import. Hierbei ist es wichtig, dass das CSV Sheet mit Kommata getrennt, utf-8 encoded und die Spalten "name" und "nachname" besitzt. Die Spalten müssen genau so heißen, sodass die Software richtig importieren kann.
+Um das zu erleichtern gibt es die Möglichkeit eine leere CSV mit diesen Anforderunge auf einen USB Stick zu laden:
+
+```
+Immmer wenn ein USB Gerät eingesteckt wird, wird es als /dev/sda in /media/sda gemountet.
+Dabei öffnet sich ein Eingabefenster, in das man einen 4-stelligen PIN eingeben muss (default 0816).
+Hier öffnen sich dann die Einstellungen, unter denen auch dieser Code geändert werden kann.
+```
+
 
   - [ ] Enable / Disable DHCP -->Button grey out Update
   - [ ] DB sync
   - [ ] sync history file
+  - [ ] change password
   - [x] SQL Lite Merge (lastchanged attribute db for row)
   - [x] Main functionality (pay, get money)
   - [x] card add to kid && lost
@@ -67,6 +81,6 @@ disable_splash=1
   - [x] Export DB
   - [x] show IP
 
-  ## Authors
+## Authors
 
 * **Paul Wolf** - *Initial work* -
