@@ -62,7 +62,7 @@ class Users:
         self.scrollbar.pack( side = RIGHT, fill = Y )
 
         self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=15)
-        self.userlist.insert(END, "TagID, Vorname, Nachname, Geburtsdatum, Kontostand")
+        self.userlist.insert(END, "TagID, Vorname, Nachname, Kontostand")
         for line in self.users:
            self.userlist.insert(END, line[:6])
 
@@ -179,14 +179,15 @@ class Settings:
         self.frame = tk.Frame(self.master)
 
         tk.Label(self.frame, text="Die CSV Datei muss UTF_8 \n mit einem Komma als Begrenzung \n gespeichert werden!", height= 5).grid(row=0, column=0, columnspan=1, rowspan=2)
-        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=0, column=1, columnspan=1)
-        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=1, column=1, columnspan=1)
+        tk.Label(self.frame, text=self.get_ip()).grid(row=0, column=1)
+        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=1, column=1, columnspan=1)
+        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=2, column=1, columnspan=1)
 
-        tk.Button(self.frame, text = 'Nutzerliste', width = 25,command=self.open_users).grid(row=2, column=0)
-        tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=3, column=0)
-        tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=4, column=0)
-        tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=5, column=0)
-        tk.Label(self.frame, text=self.get_ip()).grid(row=6, column=0)
+        tk.Button(self.frame, text = 'Nutzerliste', width = 25,command=self.open_users).grid(row=3, column=0)
+        tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=4, column=0)
+        tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=5, column=0)
+        tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=6, column=0)
+
 
         tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=1, columnspan=1)
         tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=3, column=1)
@@ -203,9 +204,9 @@ class Settings:
         #os.system("sudo pmount /dev/sda")
     def get_ip(self):
         try:
-            return subprocess.check_output("hostname -I", shell=True).decode('utf-8')
+            return subprocess.check_output("hostname -I", shell=True).decode('utf-8').replace("\n","").replace(" ","\n")
         except:
-            return "Unable to get Hostname and IP"
+            return "Unable to get IP"
 
     def open_users(self):
         self.newWindow = tk.Toplevel(self.master)

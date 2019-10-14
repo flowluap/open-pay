@@ -4,16 +4,16 @@
 
 Zuerst werden die Displaytreiber installiert:
 ```
-sudo rm -rf LCD-show 
-git clone https://github.com/goodtft/LCD-show.git 
-chmod -R 755 LCD-show 
+sudo rm -rf LCD-show
+git clone https://github.com/goodtft/LCD-show.git
+chmod -R 755 LCD-show
 cd LCD-show/
 sudo ./LCD35-show
 ```
 Nach einem Reboot funktioniert das Touch-display
 
 ```
-git clone https://github.com/flowluap/open-pay.git 
+git clone https://github.com/flowluap/open-pay.git
 cd open-pay
 #über ssh muss noch das richtige Display gewählt werden
 export DISPLAY=:0.0
@@ -55,21 +55,18 @@ disable_splash=1
 ```
 ## Todos
 
-  - [x] SQL Lite Merge (lastchanged attribute db for row)
-  - [x] Main functionality (pay, get money)
+
   - [ ] Enable / Disable DHCP -->Button grey out Update
   - [ ] DB sync
-
+  - [ ] sync history file
+  - [x] SQL Lite Merge (lastchanged attribute db for row)
+  - [x] Main functionality (pay, get money)
   - [x] card add to kid && lost
   - [x] History file
-  - [ ] sync history file
   - [x] All Kids list view
+  - [x] Export DB
+  - [x] show IP
 
-  - [ ] Export DB
-  - [ ] show IP 
-  
   ## Authors
 
-* **Paul Wolf** - *Initial work* - 
-
-
+* **Paul Wolf** - *Initial work* -
