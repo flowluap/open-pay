@@ -66,6 +66,12 @@ Immmer wenn ein USB Gerät eingesteckt wird, wird es als /dev/sda in /media/sda 
 Dabei öffnet sich ein Eingabefenster, in das man einen 4-stelligen PIN eingeben muss (default 0816).
 Hier öffnen sich dann die Einstellungen, unter denen auch dieser Code geändert werden kann.
 ```
+
+### Updaten
+
+Der Pi wird zum Updaten *sudo apt-get update -y && sudo apt-get upgrade -y* an ein LAN angeschlossen. In den Einstellungen wird von "Statische IP" zu "DHCP" gewechselt. Der PI kann vom DHCP aus dem LAN nun eine IP Adresse beziehen und seine Updates aus dem Internet herunterladen. Bei jedem Neustart des Programmes wird die IP Adresse auf statisch umgestellt *10.0.0.1/24*, sodass ein Netzwerklink zwischen mehreren Geräten erfolgen kann.
+
+
 ## Todos
 
 
