@@ -53,7 +53,6 @@ logo.nologo
 
 disable_splash=1
 ```
-## Todos
 
 ## Anleitung
 
@@ -67,12 +66,14 @@ Immmer wenn ein USB Gerät eingesteckt wird, wird es als /dev/sda in /media/sda 
 Dabei öffnet sich ein Eingabefenster, in das man einen 4-stelligen PIN eingeben muss (default 0816).
 Hier öffnen sich dann die Einstellungen, unter denen auch dieser Code geändert werden kann.
 ```
+## Todos
 
 
-  - [ ] Enable / Disable DHCP -->Button grey out Update
+
   - [ ] DB sync
-  - [ ] sync history file
   - [ ] change password
+  - [x] sync history file
+  - [x] Enable / Disable DHCP -->Button grey out Update
   - [x] SQL Lite Merge (lastchanged attribute db for row)
   - [x] Main functionality (pay, get money)
   - [x] card add to kid && lost

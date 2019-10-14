@@ -166,6 +166,7 @@ class CardManage:
 class Settings:
     def __init__(self, master):
         self.master = master
+        self.switch_variable = tk.StringVar(value="static")
         pad=3
         self._geom='200x210+0+0'
         master.geometry("{0}x{1}+0+0".format(
@@ -174,7 +175,7 @@ class Settings:
         self.frame = tk.Frame(self.master)
 
         tk.Label(self.frame, text="Die CSV Datei muss UTF_8 \n mit einem Komma als Begrenzung \n gespeichert werden!", height= 5).grid(row=0, column=0, columnspan=1, rowspan=2)
-        tk.Label(self.frame, text=self.get_ip()).grid(row=0, column=1)
+
 
 
         tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=0, columnspan=1)
@@ -183,24 +184,43 @@ class Settings:
         tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=5, column=0)
         tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=6, column=0)
 
+        tk.Label(self.frame, text=self.get_ip()).grid(row=0, column=1,columnspan=2)
+        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=1, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=2, column=1, columnspan=2)
 
-        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=1, column=1, columnspan=1)
-        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=2, column=1, columnspan=1)
-        tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=3, column=1)
-        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1)
-        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1)
-        tk.Button(self.frame, text = 'Restart Program', width = 25, command=sys.exit).grid(row=6, column=1)
 
-        self.status = tk.Text(self.frame, width=50, height=2)
-        self.status.grid(row=7,column=0,columnspan=2)
+        tk.Radiobutton(self.frame, text="Statische IP", variable=self.switch_variable,
+                            indicatoron=False, value="static", width=12, command=lambda:_thread.start_new_thread(self.set_static,())).grid(row=3, column=1, columnspan=1)
+
+        tk.Radiobutton(self.frame, text="DHCP", variable=self.switch_variable,
+                                     indicatoron=False, value="dhcp", width=12, command=lambda:_thread.start_new_thread(self.set_dhcp,())).grid(row=3, column=2, columnspan=1)
+
+        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'Restart Program', width = 25, command=sys.exit).grid(row=6, column=1, columnspan=2)
+
+
         tk.Button(self.frame, text = 'Schließen', width = 10, command = self.master.destroy).grid(row=8, column=0, columnspan=2)
         self.frame.grid()
 
-        #os.system("sudo fdisk -l")
-        #os.system("sudo pmount /dev/sda")
+    def set_dhcp(self):
+        with open('/etc/network/interfaces','w') as f:
+            f.write(os.getenv("DHCP_CONFIG"))
+        os.system("sudo ifdown eth0")
+        os.system("sudo ifup eth0")
+        os.system("sudo service networking restart")
+
+    def set_static(self):
+        with open('/etc/network/interfaces','w') as f:
+            f.write(os.getenv("NO_DHCP_CONFIG"))
+        os.system("sudo ifdown eth0")
+        os.system("sudo ifup eth0")
+        os.system("sudo service networking restart")
+
     def get_ip(self):
         try:
-            return subprocess.check_output("hostname -I", shell=True).decode('utf-8').replace("\n","").replace(" ","\n")
+            #only show ipv6 (split 2003)
+            return subprocess.check_output("hostname -I", shell=True).decode('utf-8').replace("\n","").replace(" ","\n").split("2003",1)[0]
         except:
             return "Unable to get IP"
 
@@ -293,6 +313,13 @@ class Settings:
             print(e)
 
     def update(self):
+        self.top = tk.Toplevel()
+        self.top.wm_title("Updating")
+
+        self.status = tk.Text(self.top, width=50, height=8)
+        self.status.grid(row=1,column=0)
+        tk.Button(self.top, text = 'Schließen', width = 10, command = self.top.destroy).grid(row=2, column=0)
+
         with subprocess.Popen(["sudo apt-get update -y && sudo apt-get upgrade -y"], shell=True, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
             for line in p.stdout:
                 self.status.delete("1.0", "end")
@@ -366,7 +393,12 @@ class CheckforRfid:
             self.newWindow = tk.Toplevel(self.master)
             self.app = CardManage(self.newWindow,id)
 
-
+def setiptostatic():
+    with open('/etc/network/interfaces','w') as f:
+        f.write(os.getenv("NO_DHCP_CONFIG"))
+    os.system("sudo ifdown eth0")
+    os.system("sudo ifup eth0")
+    os.system("sudo service networking restart")
 
 
 if __name__ == '__main__':
@@ -376,6 +408,9 @@ if __name__ == '__main__':
         os.system("sudo rm -r /media/*")
     except:
         pass
+
+    #set ip to static for link
+    _thread.start_new_thread( setiptostatic,())
 
     load_dotenv()
 
