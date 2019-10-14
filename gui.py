@@ -32,9 +32,8 @@ class MainGui:
 
         self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=15)
 
-        with open("/home/pi/jufö/history.txt","r") as f:
-              for line in f.read().split("\n"):
-                  self.userlist.insert(END, line)
+        for line in db.Db().command("Select * From history;").fetchall():
+            self.userlist.insert(END, line)
 
         self.userlist.pack()
         self.scrollbar.config( command = self.userlist.yview )
@@ -43,11 +42,10 @@ class MainGui:
 
         #tk.Button(self.master, text = 'Kill', width = 25,command =  self.master.destroy).pack(anchor='center')
     def update(self):
-        with open("/home/pi/jufö/history.txt","r") as f:
-            self.userlist.delete(0,'end')
-            for line in f.read().split("\n"):
-                self.userlist.insert(END, line)
-                self.userlist.see(END)
+        self.userlist.delete(0,'end')
+        for line in db.Db().command("Select * From history;").fetchall():
+            self.userlist.insert(END, line)
+            self.userlist.see(END)
         self.master.after(1000, self.update)
 
 class Users:
@@ -132,10 +130,7 @@ class CardManage:
     def go(self):
         user = db.Db().command("Select * From users Where tagid='{}';".format(self.id)).fetchall()[0]
         db.Db().new_betrag(self.id,float(self.betrag))
-
-        with open("/home/pi/jufö/history.txt","a") as f:
-            f.seek(0, 0)
-            f.write("{} {} hat {} Taler übertragen bekommen \n".format(user[2],user[3],self.betrag))
+        db.Db().insert_entry("{} {} hat {} Taler übertragen bekommen \n".format(user[2],user[3],self.betrag))
 
         MsgBox = tk.messagebox.showinfo('Zahlung hinterlegt','Betrag wurde verrechnet!',parent=self.master)
         if MsgBox == 'ok':
@@ -180,16 +175,17 @@ class Settings:
 
         tk.Label(self.frame, text="Die CSV Datei muss UTF_8 \n mit einem Komma als Begrenzung \n gespeichert werden!", height= 5).grid(row=0, column=0, columnspan=1, rowspan=2)
         tk.Label(self.frame, text=self.get_ip()).grid(row=0, column=1)
-        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=1, column=1, columnspan=1)
-        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=2, column=1, columnspan=1)
 
+
+        tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=0, columnspan=1)
         tk.Button(self.frame, text = 'Nutzerliste', width = 25,command=self.open_users).grid(row=3, column=0)
         tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=4, column=0)
         tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=5, column=0)
         tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=6, column=0)
 
 
-        tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=1, columnspan=1)
+        tk.Button(self.frame, text = 'Leere CSV speichern', width = 25, command=self.save_csv).grid(row=1, column=1, columnspan=1)
+        tk.Button(self.frame, text = 'Nutzer CSV einlesen', width = 25, command=self.load_csv).grid(row=2, column=1, columnspan=1)
         tk.Button(self.frame, text = 'Systemlink herstellen', width = 25).grid(row=3, column=1)
         tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1)
         tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1)
@@ -220,7 +216,7 @@ class Settings:
     def clear_hs(self):
         MsgBox = tk.messagebox.askquestion ('Verlauf leeren','Bist Du sicher, dass der Verlauf der Transaktionen gelöscht werden soll?',icon = 'warning',parent=self.master)
         if MsgBox == 'yes':
-           open("/home/pi/jufö/history.txt", 'w').close()
+           db.Db().del_history()
 
     def load_csv(self):
         os.system("sudo fdisk -l")
@@ -380,9 +376,6 @@ if __name__ == '__main__':
         os.system("sudo rm -r /media/*")
     except:
         pass
-
-    if not os.path.isdir('/home/pi/jufö/history.txt'):
-        open("/home/pi/jufö/history.txt", 'w').close()
 
     load_dotenv()
 

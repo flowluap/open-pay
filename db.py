@@ -20,6 +20,9 @@ class Db:
             "ID INTEGER PRIMARY KEY AUTOINCREMENT, tagid VARCHAR(65), name VARCHAR(30), nachname VARCHAR(30), kontostand FLOAT, \
              change VARCHAR(45)) "
         self.cursor.execute(sql)
+        sql = "CREATE TABLE IF NOT EXISTS history("\
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT, entry VARCHAR(120));"
+        self.cursor.execute(sql)
         self.connection.commit()
 
     def command(self, sql):
@@ -36,8 +39,14 @@ class Db:
         self.cursor.execute("UPDATE users SET kontostand = ?, change = ? WHERE tagid = ?;", (neuer_betrag,datetime.datetime.now(),id),)
         self.connection.commit()
 
+
     def del_all_users(self):
         sql = "Delete From users"
+        self.cursor.execute(sql)
+        self.connection.commit()
+
+    def del_history(self):
+        sql = "Delete From history"
         self.cursor.execute(sql)
         self.connection.commit()
 
@@ -45,5 +54,10 @@ class Db:
     def insert_user(self,data):
         name, lastname = data
         sql = "Insert INTO users (name, nachname, kontostand, change) Values ('{}','{}','{}','{}');".format(name, lastname, os.getenv("INITIAL_ACCOUNT_PLUS"),datetime.datetime.now())
+        self.cursor.execute(sql)
+        self.connection.commit()
+
+    def insert_entry(self,entry):
+        sql = "Insert INTO history (entry) Values ('{}');".format(entry)
         self.cursor.execute(sql)
         self.connection.commit()
