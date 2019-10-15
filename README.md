@@ -20,6 +20,10 @@ export DISPLAY=:0.0
 python3 gui.py
 
 ```
+Auf dem Pi wird Maria DB genutz. Falls das Netlink Feature genutzt werden soll, muss in /etc/mysql/mariadb.conf.d/50-server.cnf die *bind_address=0.0.0.0* gesetzt werden. Außerdem muss der root Nutzer entsprechend angepasst werden. Für ein System, das über ein externes Netzwerk erreichbar ist, sollte diese Konfiguration nicht genutzt werden. Da hier aber nur Peer2Peer, oder in einem eigenen Netz kommuniziert wird, erachte ich das als vernachlässigbar.
+```
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'10.0.0.%' IDENTIFIED BY '' WITH GRANT OPTION;
+```
 Ab diesem Zeitpunkt kann Open-Pay im vollen Umfang genutzt werden.
 Um Open-Pay in einer Art Kioskmodus laufen zu lassen, habe ich mich dazu entschieden *nodm (einen minimalistischen Displaymanager) und openbox* zu verwenden, um einen möglichst schnellen Start zu erlauben.
 
