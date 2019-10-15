@@ -7,10 +7,11 @@ import pyudev
 import _thread
 import pandas
 import os
-import db
 import subprocess
 from dotenv import load_dotenv
 import db
+import dotenvpars as dp
+import detodev as dv
 import rfid
 import datetime
 import socket
@@ -82,7 +83,7 @@ class CardManage:
             self.scrollbar.pack( side = RIGHT, fill = Y )
 
             self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=13)
-            self.userlist.insert(END, "ID, TagID, Vorname, Nachname, Kontostand")
+            self.userlist.insert(END, "TagID, Vorname, Nachname, Kontostand")
             for ID, tagid, name, nachname, kontostand, changes in self.users:
                self.userlist.insert(END, "{} {} {} {}".format(tagid, name, nachname, kontostand))
 
@@ -156,6 +157,39 @@ class CardManage:
         tk.Button(self.app, text = 'Schließen', width = 8, command = self.app.destroy).grid(row=6, column=1, columnspan=1, padx=5, pady=5)
         tk.Button(self.app, text = 'Weiter', command=self.go, width = 8).grid(row=6, column=2, columnspan=1, padx=5, pady=5)
 
+class SetAdminPass:
+    def __init__(self, master):
+        self.passwd = ""
+        self.master = master
+        self.frame = tk.Frame(self.master)
+
+        self.pwlabel = tk.Label(self.frame,text="")
+        self.pwlabel.grid(row= 1,column=0, columnspan=3)
+
+        tk.Button(self.frame, text=' 1 ',command=lambda: self.press(1), height=1, width=7).grid(row=2, column=0)
+        tk.Button(self.frame, text=' 2 ',command=lambda: self.press(2), height=1, width=7).grid(row=2, column=1)
+        tk.Button(self.frame, text=' 3 ',command=lambda: self.press(3), height=1, width=7).grid(row=2, column=2)
+        tk.Button(self.frame, text=' 4 ',command=lambda: self.press(4), height=1, width=7).grid(row=3, column=0)
+        tk.Button(self.frame, text=' 5 ',command=lambda: self.press(5), height=1, width=7).grid(row=3, column=1)
+        tk.Button(self.frame, text=' 6 ',command=lambda: self.press(6), height=1, width=7).grid(row=3, column=2)
+        tk.Button(self.frame, text=' 7 ',command=lambda: self.press(7), height=1, width=7).grid(row=4, column=0)
+        tk.Button(self.frame, text=' 8 ',command=lambda: self.press(8), height=1, width=7).grid(row=4, column=1)
+        tk.Button(self.frame, text=' 9 ',command=lambda: self.press(9), height=1, width=7).grid(row=4, column=2)
+        tk.Button(self.frame, text=' 0 ',command=lambda: self.press(0), height=1, width=7).grid(row=5, column=1)
+        self.frame.grid()
+
+    def press(self,number):
+        self.passwd += str(number)
+        self.pwlabel['text']+="*"
+        if len(self.passwd) == 4:
+            dp.rewrite("ADMIN_PASS",str(self.passwd))
+            MsgBox = tk.messagebox.showinfo('Admin Passwort','Das Adminpasswort wurde geändert! Änderungen werden nach einem Neustart wirksam.',parent=self.master)
+            if MsgBox == 'ok':
+                load_dotenv()
+                self.master.destroy()
+
+
+
 
 
 
@@ -177,7 +211,7 @@ class Settings:
 
         tk.Button(self.frame, text = 'Datenabank sichern', width = 25, command=self.save_db).grid(row=2, column=0, columnspan=1)
         tk.Button(self.frame, text = 'Nutzerliste', width = 25,command=self.open_users).grid(row=3, column=0)
-        tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25).grid(row=4, column=0)
+        tk.Button(self.frame, text = 'Passwort für Einstellungen ändern', width = 25, command=self.setpass).grid(row=4, column=0)
         tk.Button(self.frame, text = 'Datenbank leeren', width = 25, command = self.clear_db).grid(row=5, column=0)
         tk.Button(self.frame, text = 'Historie leeren', width = 25, command = self.clear_hs).grid(row=6, column=0)
 
@@ -192,13 +226,49 @@ class Settings:
         tk.Radiobutton(self.frame, text="DHCP", variable=self.switch_variable,
                                      indicatoron=False, value="dhcp", width=12, command=lambda:_thread.start_new_thread(self.set_dhcp,())).grid(row=3, column=2, columnspan=1)
 
-        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=4, column=1, columnspan=2)
-        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=5, column=1, columnspan=2)
-        tk.Button(self.frame, text = 'Restart Program', width = 25, command=sys.exit).grid(row=6, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'System Verlinkung', width = 25, command=lambda:_thread.start_new_thread(self.link,())).grid(row=4, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'System Update', width = 25, command=lambda:_thread.start_new_thread(self.update,())).grid(row=5, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'Reboot', width = 25, command=lambda:_thread.start_new_thread(self.reboot,())).grid(row=6, column=1, columnspan=2)
+        tk.Button(self.frame, text = 'Restart Program', width = 25, command=sys.exit).grid(row=7, column=1, columnspan=2)
 
 
         tk.Button(self.frame, text = 'Schließen', width = 10, command = self.master.destroy).grid(row=8, column=0, columnspan=2)
         self.frame.grid()
+
+    def set_device(self,evt):
+        # listeAusgewaehlt = self.listboxNamen.curselection()
+        # itemAusgewaehlt = listeAusgewaehlt[0]
+        # device = self.listboxNamen.get(itemAusgewaehlt)
+        w = evt.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        dp.rewrite("DB_IP",str(value))
+        MsgBox = tk.messagebox.showinfo('Systemlink','Das Quellgerät wurde geändert! Änderungen werden nach einem Neustart wirksam. Falls auf dem Ziel kein SQL Server läuft, wird auf die lokale Datenbank zugegriffen!',parent=self.master)
+        if MsgBox == 'ok':
+            self.top.destroy()
+
+
+
+    def link(self):
+        self.top = tk.Toplevel()
+        self.top.wm_title("Datenbank Verlinkung")
+        tk.Label(self.top, text="Bitte einen Moment warten!").grid(row=0, columnspan=2)
+        self.listboxNamen = Listbox(self.top, selectmode='browse')
+        self.listboxNamen.grid(row=1, column=0)
+        self.listboxNamen.bind('<<ListboxSelect>>', self.set_device)
+        self.listboxNamen.insert('end', '127.0.0.1')
+        self.yScroll = Scrollbar(self.top, orient='vertical')
+        self.yScroll.grid(row=1, column=1, sticky='ns')
+        self.listboxNamen.config(yscrollcommand=self.yScroll.set)
+        self.yScroll.config(command=self.listboxNamen.yview)
+
+        tk.Button(self.top, text = 'Schließen', width = 10, command = self.top.destroy).grid(row=2, column=0, columnspan=2)
+
+        devices = dv.get_active_devices()
+
+        for device in devices:
+            self.listboxNamen.insert('end', device)
+
 
     def set_dhcp(self):
         with open('/etc/dhcpcd.conf','w') as f:
@@ -224,6 +294,10 @@ class Settings:
     def open_users(self):
         self.newWindow = tk.Toplevel(self.master)
         self.app = Users(self.newWindow)
+
+    def setpass(self):
+        self.newWindow = tk.Toplevel(self.master)
+        self.app = SetAdminPass(self.newWindow)
 
     def clear_db(self):
         MsgBox = tk.messagebox.askquestion ('Nutzerdatenbank leeren','Bist Du sicher, dass alle Nutzer gelöscht werden sollen?',icon = 'warning',parent=self.master)
@@ -405,13 +479,15 @@ if __name__ == '__main__':
     except:
         pass
 
+    load_dotenv()
     #set ip to static for link
     _thread.start_new_thread( setiptostatic,())
 
-    load_dotenv()
+
 
     root = tk.Tk()
     app = MainGui(root)
+
     root.after(1000, app.update())
     _thread.start_new_thread( CheckforUsb, (root, ) )
 

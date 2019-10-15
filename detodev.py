@@ -16,4 +16,3 @@ def get_active_devices():
             if res == 0:
                 available.append(address)
     return available
-print(get_active_devices())

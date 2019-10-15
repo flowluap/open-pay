@@ -1,22 +1,37 @@
 import os, sys, sqlite3
 import datetime
-from dotenv import load_dotenv
 import mysql.connector as database
-
-load_dotenv()
+import dotenvpars as dp
+import time
 
 class Db():
     def __init__(self):
-        self.mydb = database.connect(
-          host="127.0.0.1",
-          port=3306,
-          user="root",
-          passwd="",
-          autocommit=True
-        )
+        from dotenv import load_dotenv
+        load_dotenv()
+        try:
+            self.mydb = database.connect(
+              host=os.getenv("DB_IP"),
+              port=3306,
+              user="root",
+              passwd="",
+              autocommit=True
+            )
+            self.cursor = self.mydb.cursor(buffered=True)
+            self.create_db()
+        except Exception as e:
+            dp.rewrite("DB_IP",'127.0.0.1')
+            time.sleep(1)
+            self.mydb = database.connect(
+              host='127.0.0.1',
+              port=3306,
+              user="root",
+              passwd="",
+              autocommit=True
+            )
+            self.cursor = self.mydb.cursor(buffered=True)
+            self.create_db()
 
-        self.cursor = self.mydb.cursor(buffered=True)
-        self.create_db()
+
 
     def create_db(self):
         self.cursor.execute("CREATE DATABASE IF NOT EXISTS openpay")
