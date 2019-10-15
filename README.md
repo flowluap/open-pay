@@ -17,7 +17,7 @@ git clone https://github.com/flowluap/open-pay.git
 cd open-pay
 #über ssh muss noch das richtige Display gewählt werden
 export DISPLAY=:0.0
-python3 guy.py
+python3 gui.py
 
 ```
 Ab diesem Zeitpunkt kann Open-Pay im vollen Umfang genutzt werden.

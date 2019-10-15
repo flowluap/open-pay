@@ -29,29 +29,26 @@ class MainGui:
 
         self.scrollbar = Scrollbar(self.master)
         self.scrollbar.pack( side = RIGHT, fill = Y )
-
         self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=15)
 
-        for line in db.Db().command("Select * From history;").fetchall():
-            self.userlist.insert(END, line)
+        for id,entry in db.Db().command("Select * From openpay.history;"):
+            self.userlist.insert(END, str(entry))
 
         self.userlist.pack()
         self.scrollbar.config( command = self.userlist.yview )
 
 
-
-        #tk.Button(self.master, text = 'Kill', width = 25,command =  self.master.destroy).pack(anchor='center')
     def update(self):
         self.userlist.delete(0,'end')
-        for line in db.Db().command("Select * From history;").fetchall():
-            self.userlist.insert(END, line)
+        for id,entry in db.Db().command("Select * From openpay.history;"):
+            self.userlist.insert(END, str(entry))
             self.userlist.see(END)
         self.master.after(1000, self.update)
 
 class Users:
     def __init__(self, master):
         self.master = master
-        self.users = db.Db().command("Select * From users;").fetchall()
+        self.users = db.Db().command("Select * From users;")
         self._geom='200x210+0+0'
         master.geometry("{0}x{1}+0+0".format(master.winfo_screenwidth()-3, master.winfo_screenheight()-3))
         master.wm_attributes('-type', 'splash')
@@ -61,8 +58,8 @@ class Users:
 
         self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=15)
         self.userlist.insert(END, "TagID, Vorname, Nachname, Kontostand")
-        for line in self.users:
-           self.userlist.insert(END, line[:6])
+        for ID, tagid, name, nachname, kontostand, changes in self.users:
+           self.userlist.insert(END, "{} {} {} {}".format(tagid, name, nachname, kontostand))
 
         self.userlist.pack()
         self.scrollbar.config( command = self.userlist.yview )
@@ -73,11 +70,11 @@ class CardManage:
     def __init__(self, master,id):
         self.id = id
         self.betrag=""
-        self.users = db.Db().command("Select * From users Order by name;").fetchall()
+        self.users = db.Db().command("Select * From users Order by name;")
         master.attributes('-fullscreen', True)
         self.master = master
 
-        if db.Db().command("Select * From users Where tagid='{}';".format(id)).fetchall() == []:
+        if db.Db().command("Select * From users Where tagid='{}';".format(id)) == []:
             #Tag not assigned
             tk.Label(self.master, text="Karte nicht in DB registriert. Karte mit Nutzer verknüpfen?").pack(anchor='center',pady=5)
 
@@ -86,8 +83,8 @@ class CardManage:
 
             self.userlist = Listbox(self.master, yscrollcommand = self.scrollbar.set, width=60, height=13)
             self.userlist.insert(END, "ID, TagID, Vorname, Nachname, Kontostand")
-            for line in self.users:
-               self.userlist.insert(END, line[1:6])
+            for ID, tagid, name, nachname, kontostand, changes in self.users:
+               self.userlist.insert(END, "{} {} {} {}".format(tagid, name, nachname, kontostand))
 
             self.userlist.pack()
             self.scrollbar.config( command = self.userlist.yview )
@@ -96,7 +93,7 @@ class CardManage:
             tk.Button(self.master, text = 'Weiter', width = 10, command = self.select).pack(side = LEFT)
 
         else:
-            self.userinfo = tk.Label(self.master, text = "Bitte Ausweis überprüfen: \n "+str(db.Db().command("Select * From users Where tagid='{}';".format(id)).fetchall()[0][2:6]).replace("'","").replace(",",""))
+            self.userinfo = tk.Label(self.master, text = "Bitte Ausweis überprüfen: \n "+str(db.Db().command("Select * From users Where tagid='{}';".format(id))[0][2:6]).replace("'","").replace(",",""))
             self.userinfo.pack(anchor='center',pady=5)
             tk.Button(self.master, text = 'Einzahlen', width = 35, height=5, command=self.ein).pack(anchor='center',pady=5)
             tk.Button(self.master, text = 'Auszahlen', width = 35, height=5, command=self.aus).pack(anchor='center',pady=5)
@@ -128,9 +125,9 @@ class CardManage:
             self.betrag = self.betrag[:len(self.betrag)-1]
             self.btlabel['text']= self.betrag
     def go(self):
-        user = db.Db().command("Select * From users Where tagid='{}';".format(self.id)).fetchall()[0]
+        user = db.Db().command("Select * From users Where tagid='{}';".format(self.id))[0]
         db.Db().new_betrag(self.id,float(self.betrag))
-        db.Db().insert_entry("{} {} hat {} Taler übertragen bekommen \n".format(user[2],user[3],self.betrag))
+        db.Db().insert_entry("{} {} hat {} Taler übertragen bekommen ".format(user[2],user[3],self.betrag))
 
         MsgBox = tk.messagebox.showinfo('Zahlung hinterlegt','Betrag wurde verrechnet!',parent=self.master)
         if MsgBox == 'ok':
@@ -204,14 +201,14 @@ class Settings:
         self.frame.grid()
 
     def set_dhcp(self):
-        with open('/etc/network/interfaces','w') as f:
+        with open('/etc/dhcpcd.conf','w') as f:
             f.write(os.getenv("DHCP_CONFIG"))
         os.system("sudo ifdown eth0")
         os.system("sudo ifup eth0")
         os.system("sudo service networking restart")
 
     def set_static(self):
-        with open('/etc/network/interfaces','w') as f:
+        with open('/etc/dhcpcd.conf','w') as f:
             f.write(os.getenv("NO_DHCP_CONFIG"))
         os.system("sudo ifdown eth0")
         os.system("sudo ifup eth0")
@@ -255,7 +252,6 @@ class Settings:
             return
 
         for index, row in pandas.read_csv(csv_path, sep=',').iterrows():
-                print(row, index)
                 db.Db().insert_user([row["name"],row["nachname"]])
 
         try:
@@ -394,7 +390,7 @@ class CheckforRfid:
             self.app = CardManage(self.newWindow,id)
 
 def setiptostatic():
-    with open('/etc/network/interfaces','w') as f:
+    with open('/etc/dhcpcd.conf','w') as f:
         f.write(os.getenv("NO_DHCP_CONFIG"))
     os.system("sudo ifdown eth0")
     os.system("sudo ifup eth0")
