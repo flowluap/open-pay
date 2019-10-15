@@ -19,7 +19,8 @@ class Db():
             self.cursor = self.mydb.cursor(buffered=True)
             self.create_db()
         except Exception as e:
-            dp.rewrite("DB_IP",'127.0.0.1')
+            print(e)
+            #dp.rewrite("DB_IP",'127.0.0.1')
             time.sleep(1)
             self.mydb = database.connect(
               host='127.0.0.1',

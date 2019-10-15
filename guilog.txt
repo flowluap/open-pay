@@ -1,0 +1,4 @@
+[+] USB-Stick wurde erkannt
+[+] USB-Stick wurde entfernt
+[+] USB-Stick wurde entfernt
+[+] USB-Stick wurde erkannt

@@ -236,14 +236,11 @@ class Settings:
         self.frame.grid()
 
     def set_device(self,evt):
-        # listeAusgewaehlt = self.listboxNamen.curselection()
-        # itemAusgewaehlt = listeAusgewaehlt[0]
-        # device = self.listboxNamen.get(itemAusgewaehlt)
         w = evt.widget
         index = int(w.curselection()[0])
         value = w.get(index)
         dp.rewrite("DB_IP",str(value))
-        MsgBox = tk.messagebox.showinfo('Systemlink','Das Quellgerät wurde geändert! Änderungen werden nach einem Neustart wirksam. Falls auf dem Ziel kein SQL Server läuft, wird auf die lokale Datenbank zugegriffen!',parent=self.master)
+        MsgBox = tk.messagebox.showinfo('Systemlink','Das Quellgerät wurde geändert! Änderungen werden nach einem Neustart wirksam. Falls auf dem Ziel kein SQL Server läuft, wird auf die lokale Datenbank zugegriffen!', parent=self.master)
         if MsgBox == 'ok':
             self.top.destroy()
 
