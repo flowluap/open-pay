@@ -20,7 +20,7 @@ class Db():
             self.create_db()
         except Exception as e:
             print(e)
-            #dp.rewrite("DB_IP",'127.0.0.1')
+            dp.rewrite("DB_IP",'127.0.0.1')
             time.sleep(1)
             self.mydb = database.connect(
               host='127.0.0.1',
